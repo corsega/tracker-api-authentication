@@ -34,8 +34,8 @@ resources:
       Properties:
         AliasAttributes:
           - email
-          - phone_number
-          - preferred_username
+        AutoVerifiedAttributes:
+          - email
         DeviceConfiguration:
           ChallengeRequiredOnNewDevice: true
           DeviceOnlyRememberedOnUserPrompt: false
@@ -54,6 +54,10 @@ resources:
           - AttributeDataType: String
             Mutable: true
             Name: preferred_username
+            Required: false
+          - AttributeDataType: String
+            Mutable: true
+            Name: phone_number
             Required: false
         UsernameConfiguration:
           CaseSensitive: false
