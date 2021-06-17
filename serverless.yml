@@ -1,0 +1,79 @@
+service: tracker-api-authentication
+frameworkVersion: '2'
+provider:
+  name: aws
+  profile: corsega
+  runtime: nodejs12.x
+  stage: ${opt:stage, 'dev'}
+  region: us-east-1
+  # iamRoleStatements:
+  #   - Effect: Allow
+  #     Action:
+  #       - ssm:GetParameters
+  #     Resource:
+  #       - "*"
+
+# plugins:
+#   - serverless-webpack
+
+custom:
+  accountId: { Ref: AWS::AccountId }
+  principal: cognito-idp.amazonaws.com
+  userPoolName: ${self:service}-${self:provider.stage}
+  userPoolId: { Ref: TrackerApiUserPool }
+  userPoolArn: !GetAtt 'TrackerApiUserPool.Arn'
+  # webpack:
+  #   webpackConfig: ./webpack.config.js
+  #   includeModules: true
+
+resources:
+  Resources:
+
+    TrackerApiUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        AliasAttributes:
+          - email
+          - phone_number
+          - preferred_username
+        DeviceConfiguration:
+          ChallengeRequiredOnNewDevice: true
+          DeviceOnlyRememberedOnUserPrompt: false
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+            RequireLowercase: true
+            RequireNumbers: true
+            RequireSymbols: false
+            RequireUppercase: true
+        Schema:
+          - AttributeDataType: String
+            Mutable: true
+            Name: email
+            Required: true
+          - AttributeDataType: String
+            Mutable: true
+            Name: preferred_username
+            Required: false
+        UsernameConfiguration:
+          CaseSensitive: false
+        UserPoolName: ${self:custom.userPoolName}
+
+    TrackerApiUserPoolWebClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: ${self:custom.userPoolName}WebClient
+        ExplicitAuthFlows: 
+          - USER_PASSWORD_AUTH
+        UserPoolId:
+          Ref: TrackerApiUserPool
+
+  Outputs:
+    userPoolId:
+      Value: ${self:custom.userPoolId}
+      Export:
+        Name: userPoolId
+    userPoolArn:
+      Value: ${self:custom.userPoolArn}
+      Export:
+        Name: userPoolArn
